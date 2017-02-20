@@ -142,18 +142,17 @@ a new text.
 
 Sun Wu and Udi Manber (1994) A fast algorithm for multi-pattern searching.
 Technical Report TR-94-17, University of Arizona.
-http://webglimpse.net/pubs/TR94-17.pdf
+L<http://webglimpse.net/pubs/TR94-17.pdf>
 
-ftp://ftp.cs.arizona.edu/agrep/agrep-2.04.tar.Z
+L<ftp://ftp.cs.arizona.edu/agrep/agrep-2.04.tar.Z>
 
-www.snort.org
+L<https://www.snort.org>
 
 Rolf Stiebe, Textalgorithmen, WS 2005/6
 
-
 =head1 SEE ALSO
 
-C<Text::Scan>, C<Algorithm::AhoCorasick>, C<Algorithm::RabinKarp>
+L<Text::Scan>, L<Algorithm::AhoCorasick>, L<Algorithm::RabinKarp>
 
 =head1 AUTHOR
 
