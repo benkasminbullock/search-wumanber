@@ -45,7 +45,9 @@ sub new
   die "new: unknown options: ". join(',', keys %$opts) . "\n try these: " . join(',', keys %opt) . "\n" if keys %$opts;
 
   my $time = time();
-  init_tables($this) or die "internal error: init_tables failed.\n";
+#  $this->{wm} = Search::WuManbar::Obj::init_tables ($list, $this->{case_sensitive});
+  $this->{wm} = init_tables ($list, $this->{case_sensitive});
+#  init_tables($this) or die "internal error: init_tables failed.\n";
   $this->{init_time_sec} = time() - $time;
 
   return bless $this, $class;
@@ -73,7 +75,7 @@ sub next             ## no critic (ProhibitBuiltinHomonyms)
 sub all
 {
   my ($self, $text) = @_;
-  my $m = find_all($self, $text);
+  my $m = find_all($self->{wm}, $text);
   if ($m && $self->{return_string})
     {
       for my $p (@$m)

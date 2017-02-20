@@ -34,41 +34,28 @@ static void push_result(unsigned int idx, unsigned long offset, void *data)
 #endif
 }
 
+typedef struct WuManber * Search__WuManber__Obj;
+
 MODULE = Search::WuManber	PACKAGE = Search::WuManber
 PROTOTYPES: ENABLE
 
-#define BLOCK_SIZE 3
-#define HASH1_SIZE 0x10
-int
-init_tables(obj)
-    HV *obj
-
-  PREINIT:
+Search::WuManber::Obj
+init_tables(p, case_sensitive)
     AV* p;
+    unsigned int case_sensitive;
+  PREINIT:
     SV** pp;
     SV **svp;
     int i, n_patterns;
     unsigned char **pattern_list;
-    unsigned int case_sensitive;
 
   INIT:
-    // init PAT table
-    pp = hv_fetch(obj, "patterns", 8, 0);
-    if (!pp) croak("init_tables: no patterns in obj\n");
-
-    // next test needed to avoid segv
-    if (SvTYPE(SvRV(*pp)) != SVt_PVAV) croak("init_tables: patterns not an ARRAY-ref\n");
-    p = (AV *)SvRV(*pp);
-    n_patterns = av_len(p);
-    pattern_list = (unsigned char **)calloc(sizeof(unsigned char *), n_patterns+2);
-
-    svp = hv_fetch(obj, "case_sensitive", 14, 0); 
-    if (!svp) croak("init_tables: no 'case_sensitive' in obj\n");
-    case_sensitive = SvUV(*svp);
+    n_patterns = av_len(p) + 1;
+    pattern_list = (unsigned char **)calloc(sizeof(unsigned char *), n_patterns+1);
 
   CODE:
     i = 0;
-    while (i++ <= n_patterns)
+    while (i++ < n_patterns)
       {
         SV** ep = av_fetch(p, i-1, 0);
 	STRLEN slen;
@@ -84,37 +71,29 @@ init_tables(obj)
 
     struct WuManber *wm = (struct WuManber *)calloc(1, sizeof(struct WuManber));
     wm->progname = "perl(Search::WuManber)";
-    prep_pat(wm, n_patterns+1, pattern_list, !case_sensitive);
+    prep_pat(wm, n_patterns, pattern_list, !case_sensitive);
 
-    // FIXME: this needs a destructor, to free the memory bound in wm's pointers.
-    (void)hv_store(obj, "wm", 2, newSVpvn((char *)wm, sizeof(*wm)), 0); 
+    RETVAL = wm;
 
-    (void)hv_store(obj, "BLOCK_SIZE", 9, newSViv(wm->use_bs1?1:(wm->use_bs3?3:2)), 0); 
-    RETVAL = 1;
   OUTPUT:
     RETVAL
 
 
 SV *
-find_all(obj,textsv)
-    HV *obj
+find_all(wm,textsv)
+    Search::WuManber::Obj wm
     SV *textsv
 
   PREINIT:
     AV *r;	// return value
     STRLEN text_len, n;
     unsigned char *text;
-    struct WuManber *wm;
     SV **svp;
 
     text = (unsigned char *)SvPV(textsv, text_len);
     // warn("find_all: text='%s', text_len=%d\n", text, (unsigned int)text_len);
 
   INIT:
-    svp = hv_fetch(obj, "wm", 2, 0); 
-    if (!svp) croak("find_all: no 'wm' in obj\n");
-    wm = (struct WuManber *)SvPV(*svp, n);
-    if (!svp) croak("find_all: sizeof(wm)=%d, expected %d\n", (int)n, (int)sizeof(struct WuManber));
     search_init(wm, "argv[0]");
 
     r = (AV *)sv_2mortal((SV *)newAV());
