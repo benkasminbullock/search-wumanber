@@ -131,6 +131,7 @@ void prep_pat(struct WuManber *wm, int n_pat, unsigned char **pat_p, int nocase)
   for(i=0; i< N_SYMB; i++) wm->tr1[i] = wm->tr[i]&Mask;
 
   wm->pat_len = (unsigned int *)calloc(n_pat+2, sizeof(unsigned int));
+  wm->mallocs++;
 
   wm->p_size = 255;		// max that fits in shift_min[] entries.
   for(i=1 ; i <= wm->n_pat; i++) 
@@ -321,6 +322,7 @@ f_prep(struct WuManber *wm, int pat_index, unsigned char *Pattern)
 	  }
 	  hash=hash&(PAT_HASH_SZ-1);
 	  qt = (struct pat_list *) malloc(sizeof(struct pat_list));
+	  wm->mallocs++;
 	  qt->index = pat_index;
 	  pt = wm->pat_hash[hash];
 	  qt->next = pt;
@@ -335,6 +337,30 @@ unsigned int search_text(struct WuManber *wm, unsigned char *text, int end)
 
   // mgrep(wm, text, text_len); 
   return wm->n_matches;
+}
+
+void
+WuManber_free (struct WuManber * wm)
+{
+    int i;
+    for (i=0; i<PAT_HASH_SZ; i++) {
+	struct pat_list * p;
+	p = wm->pat_hash[i];
+	while (p) {
+	    struct pat_list * q;
+	    q = p->next;
+	    free (p);
+	    wm->mallocs--;
+	    p = q;
+	}
+    }
+
+    if (wm->pat_len) {
+	free (wm->pat_len);
+	wm->mallocs--;
+    }
+    wm->pat_len = 0;
+    
 }
 
 #if STANDALONE

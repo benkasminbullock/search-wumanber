@@ -44,9 +44,11 @@ struct WuManber
   void (*cb)(unsigned int idx, unsigned long off, void *data);
   void *cb_data;
   char  *progname; 
+    int mallocs;
 };
 
 void prep_pat(struct WuManber *wm, int n_pat, unsigned char **pat_p, int nocase);
 void search_init(struct WuManber *wm, char *name);
 unsigned int search_text(struct WuManber *wm, unsigned char *text, int end);
+void WuManber_free(struct WuManber * wm);
 

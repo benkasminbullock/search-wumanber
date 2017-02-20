@@ -48,13 +48,15 @@ init_tables(p, case_sensitive)
     SV **svp;
     int i, n_patterns;
     unsigned char **pattern_list;
-
-  INIT:
-    n_patterns = av_len(p) + 1;
-    pattern_list = (unsigned char **)calloc(sizeof(unsigned char *), n_patterns+1);
-
+    struct WuManber *wm;
   CODE:
+    Newxz (wm, 1, struct WuManber);
+    wm->mallocs++;
+    wm->progname = "perl(Search::WuManber)";
     i = 0;
+    n_patterns = av_len(p) + 1;
+    Newxz (pattern_list, n_patterns+1, unsigned char *);
+    wm->mallocs++;
     while (i++ < n_patterns)
       {
         SV** ep = av_fetch(p, i-1, 0);
@@ -69,8 +71,6 @@ init_tables(p, case_sensitive)
       }
     pattern_list[i] = NULL;	// just to be sure
 
-    struct WuManber *wm = (struct WuManber *)calloc(1, sizeof(struct WuManber));
-    wm->progname = "perl(Search::WuManber)";
     prep_pat(wm, n_patterns, pattern_list, !case_sensitive);
 
     RETVAL = wm;
@@ -105,4 +105,20 @@ find_all(wm,textsv)
     RETVAL = newRV((SV *)r);
   OUTPUT:
     RETVAL
+
+MODULE = Search::WuManber	PACKAGE = Search::WuManber::Obj
+
+void
+DESTROY(wm)
+	Search::WuManber::Obj wm
+CODE:
+	//printf ("Destroying %p\n", wm);
+	WuManber_free (wm);
+	Safefree (wm->patt);
+	wm->mallocs--;
+	if (wm->mallocs != 1) {
+	    fprintf (stderr, "%s:%d: wm->mallocs = %d, should be 1.\n",
+		     __FILE__, __LINE__, wm->mallocs);
+	}
+	Safefree (wm);
 
